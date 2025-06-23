@@ -1,0 +1,234 @@
+//SynthInterface.astro
+---
+interface Props {
+  backgroundImage: string;
+  width?: number;
+  height?: number;
+  controls?: Control[];
+}
+
+interface Control {
+  id: string;
+  type: 'knob' | 'slider' | 'button' | 'led';
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  min?: number;
+  max?: number;
+  default?: number;
+  label?: string;
+  sprite?: string;
+}
+
+const { 
+  backgroundImage, 
+  width = 1200, 
+  height = 700,
+  controls = [] 
+} = Astro.props as Props;
+---
+
+<div class="synth-interface" data-width={width} data-height={height}>
+  <div class="synth-background" style={`background-image: url(${backgroundImage})`}></div>
+  
+  {controls.map((control) => {
+    const controlWidth = control.width || (control.type === 'knob' ? 80 : 40);
+    const controlHeight = control.height || (control.type === 'knob' ? 80 : 200);
+    
+    return (
+      <div 
+        class={`control ${control.type}`}
+        id={control.id}
+        data-type={control.type}
+        data-min={control.min}
+        data-max={control.max}
+        data-default={control.default}
+        style={`
+          left: ${control.x}px; 
+          top: ${control.y}px;
+          width: ${controlWidth}px;
+          height: ${controlHeight}px;
+        `}
+      >
+      {control.type === 'knob' && (
+        <div class="knob-sprite" style={control.sprite ? `background-image: url(${control.sprite})` : ''}>
+          <div class="knob-indicator"></div>
+        </div>
+      )}
+      
+      {control.type === 'slider' && (
+        <>
+          <div class="slider-track"></div>
+          <div class="slider-handle" style={control.sprite ? `background-image: url(${control.sprite})` : ''}></div>
+        </>
+      )}
+      
+      {control.type === 'button' && (
+        <div class="button-sprite" style={control.sprite ? `background-image: url(${control.sprite})` : ''}></div>
+      )}
+      
+      {control.type === 'led' && (
+        <div class="led-sprite"></div>
+      )}
+      
+        {control.label && (
+          <div class="control-label">{control.label}</div>
+        )}
+      </div>
+    );
+  })}
+  
+  <div class="value-display"></div>
+</div>
+
+<script>
+  import { SynthController } from './SynthController.astro';
+  
+  // Initialize controller when DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    const synthElement = document.querySelector('.synth-interface') as HTMLElement;
+    if (synthElement) {
+      new SynthController(synthElement);
+    }
+  });
+</script>
+
+<style>
+  .synth-interface {
+    position: relative;
+    user-select: none;
+    overflow: hidden;
+  }
+
+  .synth-background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+  }
+
+  .control {
+    position: absolute;
+    cursor: pointer;
+  }
+
+  .control.knob {
+    cursor: grab;
+  }
+
+  .control.knob:active {
+    cursor: grabbing;
+  }
+
+  .knob-sprite {
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transform-origin: center;
+    transition: transform 0.1s;
+  }
+
+  .knob-indicator {
+    position: absolute;
+    width: 3px;
+    height: 35%;
+    background: #fff;
+    left: 50%;
+    top: 10%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 3px rgba(255,255,255,0.5);
+    pointer-events: none;
+  }
+
+  .slider {
+    cursor: ns-resize;
+  }
+
+  .slider-track {
+    position: absolute;
+    width: 6px;
+    height: 100%;
+    background: #111;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.8);
+  }
+
+  .slider-handle {
+    position: absolute;
+    width: 100%;
+    height: 20px;
+    background: linear-gradient(to bottom, #888, #444);
+    border: 1px solid #222;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    left: 0;
+    cursor: ns-resize;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  .button-sprite {
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: all 0.1s;
+  }
+
+  .button-sprite:active {
+    transform: scale(0.95);
+    filter: brightness(0.8);
+  }
+
+  .button-sprite.active {
+    filter: brightness(1.5) saturate(2);
+  }
+
+  .led-sprite {
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, #300, #100);
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+
+  .led-sprite.active {
+    background: radial-gradient(circle, #f33, #a00);
+    box-shadow: 0 0 15px #f00;
+  }
+
+  .control-label {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: #aaa;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .value-display {
+    position: fixed;
+    background: rgba(0,0,0,0.9);
+    color: #0ff;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-family: monospace;
+    pointer-events: none;
+    z-index: 1000;
+    border: 1px solid #0ff;
+    display: none;
+  }
+
+  .value-display.active {
+    display: block;
+  }
+</style>

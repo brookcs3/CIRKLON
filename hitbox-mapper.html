@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cirklon Hitbox Mapper</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background: #444;
+        }
+        
+        button.active {
+            background: #0a84ff;
+        }
+        
+        .container {
+            position: relative;
+            display: inline-block;
+            border: 2px solid #444;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .background-image {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .hitbox {
+            position: absolute;
+            border: 2px dashed #ff0080;
+            background: rgba(255, 0, 128, 0.2);
+            cursor: crosshair;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 1px 1px 2px #000;
+        }
+        
+        .coordinates {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            min-width: 200px;
+        }
+        
+        .output {
+            margin-top: 20px;
+            padding: 20px;
+            background: #222;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .info {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            border-left: 4px solid #0a84ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h2>Cirklon Hitbox Mapper</h2>
+        <p><strong>Instructions:</strong></p>
+        <ol>
+            <li>Switch between the two background images using the buttons below</li>
+            <li>Click and drag to create hitboxes over controls (buttons, knobs, etc.)</li>
+            <li>Each hitbox will be automatically numbered and logged</li>
+            <li>Copy the coordinates from the output below for your documentation</li>
+        </ol>
+    </div>
+
+    <div class="controls">
+        <button id="bg1-btn" class="active" onclick="switchBackground(1)">Cirklokn.svg Background</button>
+        <button id="bg2-btn" onclick="switchBackground(2)">1.svg Background</button>
+        <button onclick="clearHitboxes()">Clear All Hitboxes</button>
+        <button onclick="exportData()">Export Coordinates</button>
+    </div>
+
+    <div class="coordinates">
+        <div>Mouse Position: <span id="mouse-pos">0, 0</span></div>
+        <div>Image Size: <span id="image-size">0 x 0</span></div>
+        <div>Scale Factor: <span id="scale-factor">1.0</span></div>
+        <div>Current Hitbox: <span id="current-hitbox">None</span></div>
+    </div>
+
+    <div class="container" id="container">
+        <img id="background" class="background-image" src="IMAGES/Cirklokn.svg" alt="Cirklon Interface">
+    </div>
+
+    <div class="output" id="output">
+        Coordinates will appear here as you create hitboxes...
+    </div>
+
+    <script>
+        let isDrawing = false;
+        let startX, startY;
+        let hitboxCount = 0;
+        let hitboxes = [];
+        let currentBackground = 1;
+
+        const container = document.getElementById('container');
+        const background = document.getElementById('background');
+        const output = document.getElementById('output');
+
+        // Update image size display when image loads
+        background.onload = function() {
+            updateImageInfo();
+        };
+
+        function updateImageInfo() {
+            const rect = background.getBoundingClientRect();
+            document.getElementById('image-size').textContent = `${Math.round(rect.width)} x ${Math.round(rect.height)}`;
+            document.getElementById('scale-factor').textContent = (rect.width / background.naturalWidth).toFixed(3);
+        }
+
+        // Track mouse position
+        container.addEventListener('mousemove', function(e) {
+            const rect = container.getBoundingClientRect();
+            const x = Math.round(e.clientX - rect.left);
+            const y = Math.round(e.clientY - rect.top);
+            document.getElementById('mouse-pos').textContent = `${x}, ${y}`;
+        });
+
+        // Start drawing hitbox
+        container.addEventListener('mousedown', function(e) {
+            if (e.target === background) {
+                isDrawing = true;
+                const rect = container.getBoundingClientRect();
+                startX = e.clientX - rect.left;
+                startY = e.clientY - rect.top;
+                
+                // Create temporary hitbox
+                const tempBox = document.createElement('div');
+                tempBox.className = 'hitbox';
+                tempBox.id = 'temp-hitbox';
+                tempBox.style.left = startX + 'px';
+                tempBox.style.top = startY + 'px';
+                tempBox.style.width = '0px';
+                tempBox.style.height = '0px';
+                container.appendChild(tempBox);
+            }
+        });
+
+        // Update hitbox size while drawing
+        container.addEventListener('mousemove', function(e) {
+            if (isDrawing) {
+                const tempBox = document.getElementById('temp-hitbox');
+                if (tempBox) {
+                    const rect = container.getBoundingClientRect();
+                    const currentX = e.clientX - rect.left;
+                    const currentY = e.clientY - rect.top;
+                    
+                    const width = Math.abs(currentX - startX);
+                    const height = Math.abs(currentY - startY);
+                    const left = Math.min(startX, currentX);
+                    const top = Math.min(startY, currentY);
+                    
+                    tempBox.style.left = left + 'px';
+                    tempBox.style.top = top + 'px';
+                    tempBox.style.width = width + 'px';
+                    tempBox.style.height = height + 'px';
+                    
+                    document.getElementById('current-hitbox').textContent = 
+                        `Drawing: ${Math.round(left)}, ${Math.round(top)}, ${Math.round(width)}, ${Math.round(height)}`;
+                }
+            }
+        });
+
+        // Finish drawing hitbox
+        container.addEventListener('mouseup', function(e) {
+            if (isDrawing) {
+                isDrawing = false;
+                const tempBox = document.getElementById('temp-hitbox');
+                
+                if (tempBox) {
+                    const width = parseInt(tempBox.style.width);
+                    const height = parseInt(tempBox.style.height);
+                    
+                    // Only create hitbox if it's large enough
+                    if (width > 10 && height > 10) {
+                        hitboxCount++;
+                        tempBox.id = `hitbox-${hitboxCount}`;
+                        tempBox.textContent = `#${hitboxCount}`;
+                        
+                        // Store hitbox data
+                        const hitboxData = {
+                            id: hitboxCount,
+                            background: currentBackground,
+                            left: parseInt(tempBox.style.left),
+                            top: parseInt(tempBox.style.top),
+                            width: width,
+                            height: height
+                        };
+                        
+                        hitboxes.push(hitboxData);
+                        updateOutput();
+                        
+                        // Add click to remove functionality
+                        tempBox.addEventListener('click', function() {
+                            removeHitbox(hitboxCount);
+                        });
+                    } else {
+                        tempBox.remove();
+                    }
+                }
+                
+                document.getElementById('current-hitbox').textContent = 'None';
+            }
+        });
+
+        function switchBackground(bgNum) {
+            currentBackground = bgNum;
+            
+            // Update button states
+            document.getElementById('bg1-btn').classList.toggle('active', bgNum === 1);
+            document.getElementById('bg2-btn').classList.toggle('active', bgNum === 2);
+            
+            // Switch background image
+            if (bgNum === 1) {
+                background.src = 'IMAGES/Cirklokn.svg';
+            } else {
+                background.src = 'IMAGES/1.svg';
+            }
+            
+            setTimeout(updateImageInfo, 100);
+        }
+
+        function clearHitboxes() {
+            const hitboxElements = container.querySelectorAll('.hitbox');
+            hitboxElements.forEach(box => box.remove());
+            hitboxes = [];
+            hitboxCount = 0;
+            updateOutput();
+        }
+
+        function removeHitbox(id) {
+            const element = document.getElementById(`hitbox-${id}`);
+            if (element) {
+                element.remove();
+                hitboxes = hitboxes.filter(box => box.id !== id);
+                updateOutput();
+            }
+        }
+
+        function updateOutput() {
+            const outputText = hitboxes.map(box => {
+                const bg = box.background === 1 ? 'Cirklokn.svg' : '1.svg';
+                return `Hitbox #${box.id} (${bg}):
+  Position: x=${box.left}, y=${box.top}
+  Size: width=${box.width}, height=${box.height}
+  CSS: left:${box.left}px; top:${box.top}px; width:${box.width}px; height:${box.height}px;
+`;
+            }).join('\n');
+            
+            output.textContent = outputText || 'No hitboxes created yet...';
+        }
+
+        function exportData() {
+            const data = {
+                timestamp: new Date().toISOString(),
+                hitboxes: hitboxes
+            };
+            
+            const jsonString = JSON.stringify(data, null, 2);
+            
+            // Create download
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cirklon-hitboxes.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Prevent default drag behavior on image
+        background.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>

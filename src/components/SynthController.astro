@@ -1,0 +1,291 @@
+// SynthController.ts
+export class SynthController {
+  private element: HTMLElement;
+  private controls: Map<string, ControlState> = new Map();
+  private valueDisplay: HTMLElement;
+  private audioContext?: AudioContext;
+  private activeNotes: Map<string, OscillatorNode> = new Map();
+
+  constructor(element: HTMLElement) {
+    this.element = element;
+    this.valueDisplay = element.querySelector('.value-display') as HTMLElement;
+    this.initializeControls();
+    this.setupEventListeners();
+  }
+
+  private initializeControls() {
+    const controlElements = this.element.querySelectorAll('.control');
+    
+    controlElements.forEach((control: Element) => {
+      const htmlControl = control as HTMLElement;
+      const id = htmlControl.id;
+      const type = htmlControl.dataset.type as ControlType;
+      const min = parseFloat(htmlControl.dataset.min || '0');
+      const max = parseFloat(htmlControl.dataset.max || '100');
+      const defaultValue = parseFloat(htmlControl.dataset.default || '50');
+
+      this.controls.set(id, {
+        element: htmlControl,
+        type,
+        min,
+        max,
+        value: defaultValue,
+        normalizedValue: (defaultValue - min) / (max - min)
+      });
+
+      // Set initial visual state
+      this.updateControlVisual(id);
+    });
+  }
+
+  private setupEventListeners() {
+    this.controls.forEach((state, id) => {
+      const control = state.element;
+
+      switch (state.type) {
+        case 'knob':
+          this.setupKnobEvents(control, id);
+          break;
+        case 'slider':
+          this.setupSliderEvents(control, id);
+          break;
+        case 'button':
+          this.setupButtonEvents(control, id);
+          break;
+      }
+    });
+
+    // Global mouse up
+    document.addEventListener('mouseup', () => this.handleMouseUp());
+    document.addEventListener('mouseleave', () => this.handleMouseUp());
+  }
+
+  private setupKnobEvents(knob: HTMLElement, id: string) {
+    let isDragging = false;
+    let startY = 0;
+    let startValue = 0;
+
+    knob.addEventListener('mousedown', (e: MouseEvent) => {
+      isDragging = true;
+      startY = e.clientY;
+      const state = this.controls.get(id)!;
+      startValue = state.normalizedValue;
+      this.showValueDisplay(e.pageX, e.pageY, this.formatValue(id, state.value));
+    });
+
+    document.addEventListener('mousemove', (e: MouseEvent) => {
+      if (!isDragging) return;
+
+      const deltaY = (startY - e.clientY) / 100;
+      const newNormalized = Math.max(0, Math.min(1, startValue + deltaY));
+      
+      this.updateControl(id, newNormalized);
+      this.showValueDisplay(e.pageX, e.pageY, this.formatValue(id, this.controls.get(id)!.value));
+    });
+
+    knob.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+  }
+
+  private setupSliderEvents(slider: HTMLElement, id: string) {
+    let isDragging = false;
+    const handle = slider.querySelector('.slider-handle') as HTMLElement;
+    const sliderHeight = slider.offsetHeight - handle.offsetHeight;
+
+    slider.addEventListener('mousedown', (e: MouseEvent) => {
+      isDragging = true;
+      const rect = slider.getBoundingClientRect();
+      const y = e.clientY - rect.top - handle.offsetHeight / 2;
+      const normalized = 1 - Math.max(0, Math.min(1, y / sliderHeight));
+      
+      this.updateControl(id, normalized);
+      this.showValueDisplay(e.pageX, e.pageY, this.formatValue(id, this.controls.get(id)!.value));
+    });
+
+    document.addEventListener('mousemove', (e: MouseEvent) => {
+      if (!isDragging) return;
+
+      const rect = slider.getBoundingClientRect();
+      const y = e.clientY - rect.top - handle.offsetHeight / 2;
+      const normalized = 1 - Math.max(0, Math.min(1, y / sliderHeight));
+      
+      this.updateControl(id, normalized);
+      this.showValueDisplay(e.pageX, e.pageY, this.formatValue(id, this.controls.get(id)!.value));
+    });
+
+    slider.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+  }
+
+  private setupButtonEvents(button: HTMLElement, id: string) {
+    button.addEventListener('click', () => {
+      const state = this.controls.get(id)!;
+      state.value = state.value > 0 ? 0 : 1;
+      this.updateControlVisual(id);
+      this.emitControlChange(id, state.value);
+
+      // Handle special button actions
+      if (id === 'play') {
+        this.togglePlayback();
+      }
+    });
+  }
+
+  private updateControl(id: string, normalizedValue: number) {
+    const state = this.controls.get(id);
+    if (!state) return;
+
+    state.normalizedValue = normalizedValue;
+    state.value = state.min + (state.max - state.min) * normalizedValue;
+    
+    this.updateControlVisual(id);
+    this.emitControlChange(id, state.value);
+  }
+
+  private updateControlVisual(id: string) {
+    const state = this.controls.get(id);
+    if (!state) return;
+
+    switch (state.type) {
+      case 'knob':
+        const knobSprite = state.element.querySelector('.knob-sprite') as HTMLElement;
+        if (knobSprite) {
+          const rotation = -135 + (270 * state.normalizedValue);
+          knobSprite.style.transform = `rotate(${rotation}deg)`;
+        }
+        break;
+
+      case 'slider':
+        const handle = state.element.querySelector('.slider-handle') as HTMLElement;
+        if (handle) {
+          const sliderHeight = state.element.offsetHeight - handle.offsetHeight;
+          const y = (1 - state.normalizedValue) * sliderHeight;
+          handle.style.top = `${y}px`;
+        }
+        break;
+
+      case 'button':
+        const buttonSprite = state.element.querySelector('.button-sprite') as HTMLElement;
+        if (buttonSprite) {
+          buttonSprite.classList.toggle('active', state.value > 0);
+        }
+        
+        // Update associated LED if exists
+        const led = document.getElementById(`${id}-led`);
+        if (led) {
+          led.querySelector('.led-sprite')?.classList.toggle('active', state.value > 0);
+        }
+        break;
+    }
+  }
+
+  private formatValue(id: string, value: number): string {
+    // Custom formatting based on control ID
+    if (id.includes('freq')) {
+      return value < 1000 ? `${Math.round(value)} Hz` : `${(value/1000).toFixed(1)} kHz`;
+    } else if (id.includes('time') || id.includes('attack') || id.includes('release')) {
+      return `${Math.round(value)} ms`;
+    } else if (id.includes('volume') || id.includes('mix')) {
+      return `${Math.round(value)}%`;
+    }
+    return value.toFixed(1);
+  }
+
+  private showValueDisplay(x: number, y: number, text: string) {
+    this.valueDisplay.textContent = text;
+    this.valueDisplay.style.left = `${x + 15}px`;
+    this.valueDisplay.style.top = `${y - 30}px`;
+    this.valueDisplay.classList.add('active');
+  }
+
+  private hideValueDisplay() {
+    this.valueDisplay.classList.remove('active');
+  }
+
+  private handleMouseUp() {
+    this.hideValueDisplay();
+  }
+
+  private emitControlChange(id: string, value: number) {
+    // Emit custom event for control changes
+    this.element.dispatchEvent(new CustomEvent('controlchange', {
+      detail: { id, value }
+    }));
+  }
+
+  private togglePlayback() {
+    // Simple audio demo - can be extended
+    if (!this.audioContext) {
+      this.audioContext = new AudioContext();
+    }
+
+    const isPlaying = this.controls.get('play')?.value || 0;
+    
+    if (isPlaying > 0) {
+      this.startAudio();
+    } else {
+      this.stopAudio();
+    }
+  }
+
+  private startAudio() {
+    if (!this.audioContext) return;
+
+    const osc = this.audioContext.createOscillator();
+    const gain = this.audioContext.createGain();
+    
+    const freq = this.controls.get('osc-freq')?.value || 440;
+    const volume = (this.controls.get('volume')?.value || 75) / 100;
+    
+    osc.frequency.value = freq;
+    gain.gain.value = volume * 0.2;
+    
+    osc.connect(gain);
+    gain.connect(this.audioContext.destination);
+    
+    osc.start();
+    this.activeNotes.set('demo', osc);
+  }
+
+  private stopAudio() {
+    this.activeNotes.forEach(osc => {
+      osc.stop();
+    });
+    this.activeNotes.clear();
+  }
+
+  // Public API
+  public getValue(id: string): number | undefined {
+    return this.controls.get(id)?.value;
+  }
+
+  public setValue(id: string, value: number) {
+    const state = this.controls.get(id);
+    if (!state) return;
+
+    const normalized = (value - state.min) / (state.max - state.min);
+    this.updateControl(id, normalized);
+  }
+
+  public getAllValues(): Record<string, number> {
+    const values: Record<string, number> = {};
+    this.controls.forEach((state, id) => {
+      values[id] = state.value;
+    });
+    return values;
+  }
+}
+
+// Type definitions
+type ControlType = 'knob' | 'slider' | 'button' | 'led';
+
+interface ControlState {
+  element: HTMLElement;
+  type: ControlType;
+  min: number;
+  max: number;
+  value: number;
+  normalizedValue: number;
+}

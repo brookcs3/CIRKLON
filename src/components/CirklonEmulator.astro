@@ -1,0 +1,357 @@
+---
+// Main Cirklon Emulator Component
+---
+
+<div class="cirklon-panel">
+	<!-- Step keys row -->
+	{Array.from({length: 16}).map((_, i) => {
+		const stepNum = i + 1;
+		const calcX = 50 + i * 35;
+		return (
+			<Fragment key={i}>
+				<button class="step-key" style={`position:absolute; left:${calcX}px; top:250px;`}>{stepNum}</button>
+				<div class="step-enc" style={`position:absolute; left:${calcX}px; top:200px;`}>
+					<div class="encoder-knob"></div>
+				</div>
+			</Fragment>
+		)
+	})}
+
+	<!-- Left function cluster -->
+	<button class="function-btn" style="position:absolute; left:20px; top:50px;">SHIFT</button>
+	<button class="function-btn" style="position:absolute; left:20px; top:80px;">FILL</button>
+	<button class="function-btn" style="position:absolute; left:20px; top:110px;">SOLO</button>
+	<button class="function-btn" style="position:absolute; left:20px; top:140px;">NEXT</button>
+
+	<!-- LCD Display -->
+	<div class="lcd-display" style="position:absolute; left:300px; top:50px;">
+		<div class="display-text">SEQUENTIX</div>
+		<div class="display-text">cirklon</div>
+	</div>
+
+	<!-- Right function cluster -->
+	<button class="function-btn" style="position:absolute; left:650px; top:50px;">SAVE</button>
+	<button class="function-btn" style="position:absolute; left:650px; top:80px;">LAST</button>
+	<button class="function-btn" style="position:absolute; left:650px; top:110px;">SCULPT</button>
+	<button class="function-btn" style="position:absolute; left:650px; top:140px;">MENU</button>
+	<button class="function-btn" style="position:absolute; left:610px; top:170px;">COPY</button>
+	<button class="function-btn" style="position:absolute; left:650px; top:170px;">DELETE</button>
+	<button class="function-btn" style="position:absolute; left:690px; top:170px;">INSERT</button>
+	<button class="function-btn" style="position:absolute; left:730px; top:250px;">GANG</button>
+	
+	<!-- Transport buttons -->
+	<button class="transport-btn" style="position:absolute; left:60px; top:250px;">■</button>
+	<button class="transport-btn" style="position:absolute; left:100px; top:250px;">▶</button>
+	<button class="transport-btn record-btn" style="position:absolute; left:140px; top:250px;">●</button>
+	
+	<!-- Knobs A and B (assignable knobs) -->
+	<div class="assignable-knob" style="position:absolute; left:700px; top:20px;">
+		<div class="encoder-knob"></div>
+		<span class="knob-label">A</span>
+	</div>
+	<div class="assignable-knob" style="position:absolute; left:740px; top:20px;">
+		<div class="encoder-knob"></div>
+		<span class="knob-label">B</span>
+	</div>
+	
+	<!-- Value encoder near the screen -->
+	<div class="value-encoder" style="position:absolute; left:550px; top:100px;">
+		<div class="encoder-knob"></div>
+		<span class="knob-label">VALUE</span>
+	</div>
+	
+	<!-- Row and Bar encoders -->
+	<div class="row-encoder" style="position:absolute; left:10px; top:200px;">
+		<div class="encoder-knob"></div>
+		<span class="knob-label">ROW</span>
+	</div>
+	<div class="bar-encoder" style="position:absolute; left:730px; top:200px;">
+		<div class="encoder-knob"></div>
+		<span class="knob-label">BAR</span>
+	</div>
+</div>
+
+<style>
+	.cirklon-panel {
+		position: relative;
+		width: 800px;
+		height: 300px;
+		background: #222;
+		color: #000;
+		font-family: 'Arial', sans-serif;
+		border-radius: 8px;
+		box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+		margin: 20px auto;
+		border: 2px solid #444;
+	}
+
+	/* Step Keys */
+	.step-key {
+		width: 28px;
+		height: 18px;
+		background: #fff;
+		border: 1px solid #999;
+		border-radius: 3px;
+		color: #000;
+		font-size: 8px;
+		font-weight: normal;
+		cursor: pointer;
+		transition: all 0.1s ease;
+		box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+	}
+	
+	.step-key:hover {
+		background: #f5f5f5;
+		border-color: #777;
+		transform: translateY(-1px);
+	}
+	
+	.step-key:active, .step-key.active {
+		background: #333;
+		color: #fff;
+		border-color: #333;
+		box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+	}
+	
+	/* Step Encoders */
+	.step-enc {
+		width: 20px;
+		height: 20px;
+		background: #222;
+		border: 1px solid #fff;
+		border-radius: 50%;
+		position: relative;
+		cursor: pointer;
+		transition: all 0.1s ease;
+	}
+
+	/* LCD Display */
+	.lcd-display {
+		background: #000;
+		border: 2px solid #555;
+		border-radius: 4px;
+		padding: 8px 16px;
+		width: 180px;
+		height: 60px;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		font-family: 'Courier New', monospace;
+		box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);
+	}
+
+	.display-text {
+		color: #0ff;
+		font-size: 11px;
+		font-weight: bold;
+		text-transform: uppercase;
+		letter-spacing: 1px;
+		line-height: 1.2;
+		text-shadow: 0 0 4px #0ff;
+	}
+
+	/* Encoders - Generic */
+	.step-enc, .assignable-knob, .value-encoder, .row-encoder, .bar-encoder {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 2px;
+	}
+	
+	.assignable-knob, .value-encoder, .row-encoder, .bar-encoder {
+		width: 30px;
+		height: 30px;
+		background: #222;
+		border: 1px solid #fff;
+		border-radius: 50%;
+		position: relative;
+		cursor: pointer;
+		transition: all 0.1s ease;
+	}
+	
+	.knob-label {
+		position: absolute;
+		top: 35px;
+		font-size: 6px;
+		color: #fff;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+		text-align: center;
+		width: 100%;
+	}
+
+	.encoder-knob {
+		width: calc(100% - 2px);
+		height: calc(100% - 2px);
+		background: #000;
+		border-radius: 50%;
+		position: absolute;
+		top: 1px;
+		left: 1px;
+	}
+	
+	.encoder-knob::after {
+		content: '';
+		position: absolute;
+		top: 1px;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 1px;
+		height: 8px;
+		background: #fff;
+		border-radius: 0;
+	}
+
+	/* Function Buttons */
+	.function-btn {
+		background: #fff;
+		border: 1px solid #999;
+		border-radius: 3px;
+		color: #000;
+		padding: 4px 8px;
+		font-size: 7px;
+		font-weight: normal;
+		cursor: pointer;
+		transition: all 0.1s ease;
+		text-transform: uppercase;
+		box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+	}
+	
+	.function-btn:hover {
+		background: #f5f5f5;
+		border-color: #777;
+		transform: translateY(-1px);
+	}
+	
+	.function-btn:active {
+		background: #ddd;
+		border-color: #555;
+		transform: translateY(0);
+		box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+	}
+
+	/* Transport Buttons */
+	.transport-btn {
+		width: 30px;
+		height: 20px;
+		background: #fff;
+		border: 1px solid #999;
+		border-radius: 3px;
+		color: #000;
+		font-size: 10px;
+		cursor: pointer;
+		transition: all 0.1s ease;
+		box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	.transport-btn:hover {
+		background: #f5f5f5;
+		border-color: #777;
+		transform: translateY(-1px);
+	}
+	
+	.transport-btn:active {
+		background: #ddd;
+		border-color: #555;
+		transform: translateY(0);
+		box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+	}
+
+	/* Record Button Special Styling */
+	.record-btn {
+		color: #f00 !important;
+		border-color: #f00;
+	}
+	
+	.record-btn:hover {
+		background: #fee;
+		border-color: #c00;
+	}
+	
+	.record-btn:active, .record-btn.active {
+		background: #f00;
+		color: #fff;
+		border-color: #f00;
+		box-shadow: 0 0 8px rgba(255,0,0,0.6);
+	}
+
+	/* Responsive Design */
+	@media (max-width: 900px) {
+		.cirklon-panel {
+			width: 600px;
+			height: 225px;
+			transform: scale(0.75);
+		}
+	}
+	
+	@media (max-width: 650px) {
+		.cirklon-panel {
+			width: 400px;
+			height: 150px;
+			transform: scale(0.5);
+		}
+	}
+</style>
+
+<script>
+	// Interactive functionality
+	document.addEventListener('DOMContentLoaded', () => {
+		// Knob rotation functionality
+		const knobs = document.querySelectorAll('.step-enc, .assignable-knob, .value-encoder, .row-encoder, .bar-encoder');
+		
+		knobs.forEach(knob => {
+			let rotation = 0;
+			let isDragging = false;
+			let startY = 0;
+			
+			knob.addEventListener('mousedown', (e) => {
+				isDragging = true;
+				startY = e.clientY;
+				knob.style.cursor = 'grabbing';
+			});
+			
+			document.addEventListener('mousemove', (e) => {
+				if (isDragging) {
+					const deltaY = startY - e.clientY;
+					rotation += deltaY * 0.5;
+					rotation = Math.max(-150, Math.min(150, rotation));
+					
+					const indicator = knob.querySelector('.encoder-knob');
+					if (indicator) {
+						indicator.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+					}
+					
+					startY = e.clientY;
+				}
+			});
+			
+			document.addEventListener('mouseup', () => {
+				isDragging = false;
+				knob.style.cursor = 'pointer';
+			});
+		});
+		
+		// Button interactions
+		const stepButtons = document.querySelectorAll('.step-key');
+		stepButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				btn.classList.toggle('active');
+			});
+		});
+		
+		// Transport button interactions
+		const transportButtons = document.querySelectorAll('.transport-btn');
+		transportButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				// Remove active from all transport buttons
+				transportButtons.forEach(b => b.classList.remove('active'));
+				// Add active to clicked button
+				btn.classList.add('active');
+			});
+		});
+	});
+</script>

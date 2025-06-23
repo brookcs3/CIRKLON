@@ -1,0 +1,42 @@
+//index.astro
+---
+import SynthInterface from '../components/SynthInterface.ts';
+
+const synthControls = [
+  { id: 'osc-freq', type: 'knob', x: 160, y: 210, min: 20, max: 20000, default: 440, label: 'OSC FREQ' },
+  { id: 'filter', type: 'knob', x: 310, y: 210, min: 20, max: 20000, default: 1000, label: 'FILTER' },
+  { id: 'volume', type: 'slider', x: 150, y: 400, min: 0, max: 100, default: 75, label: 'VOLUME' },
+  { id: 'play', type: 'button', x: 800, y: 300, width: 80, height: 40 },
+  { id: 'play-led', type: 'led', x: 900, y: 310, width: 12, height: 12 }
+];
+
+const defaultBackground = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI3MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPCEtLSBWaW50YWdlIFN5bnRoIEJhY2tncm91bmQgLS0+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InBhbmVsIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM0NDQiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1MCUiIHN0b3AtY29sb3I9IiMyYTJhMmEiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMTExIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGZpbHRlciBpZD0ibm9pc2UiPgogICAgICA8ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9IjAuOSIgbnVtT2N0YXZlcz0iNCIgcmVzdWx0PSJub2lzZSIgc2VlZD0iMSIvPgogICAgICA8ZmVDb21wb3NpdGUgaW49Im5vaXNlIiBpbjI9IlNvdXJjZUdyYXBoaWMiIG9wZXJhdG9yPSJtdWx0aXBseSIvPgogICAgPC9maWx0ZXI+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjcwMCIgZmlsbD0idXJsKCNwYW5lbCkiIGZpbHRlcj0idXJsKCNub2lzZSkiLz4KICAKICA8IS0tIFRvcCBQYW5lbCB3aXRoIExvZ28gLS0+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEyMDAiIGhlaWdodD0iODAiIGZpbGw9IiMxMTEiLz4KICA8dGV4dCB4PSI2MDAiIHk9IjQ1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjI4IiBmaWxsPSIjZGRkIiBmb250LWZhbWlseT0iQXJpYWwgQmxhY2siPkFOQUxPRyBTWU5USEVTSVpFUjwvdGV4dD4KICAKICA8IS0tIEtub2IgUGxhY2Vob2xkZXJzIC0tPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjI1MCIgcj0iNDAiIGZpbGw9IiMzMzMiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIzIi8+CiAgPGNpcmNsZSBjeD0iMzUwIiBjeT0iMjUwIiByPSI0MCIgZmlsbD0iIzMzMyIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjMiLz4KICA8Y2lyY2xlIGN4PSI1MDAiIGN5PSIyNTAiIHI9IjQwIiBmaWxsPSIjMzMzIiBzdHJva2U9IiMxMTEiIHN0cm9rZS13aWR0aD0iMyIvPgogIDxjaXJjbGUgY3g9IjY1MCIgY3k9IjI1MCIgcj0iNDAiIGZpbGw9IiMzMzMiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIzIi8+CiAgCiAgPCEtLSBTbGlkZXIgYXJlYXMgLS0+CiAgPHJlY3QgeD0iMTUwIiB5PSI0MDAiIHdpZHRoPSI0MCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMxMTEiIHJ4PSI1Ii8+CiAgPHJlY3QgeD0iMjUwIiB5PSI0MDAiIHdpZHRoPSI0MCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMxMTEiIHJ4PSI1Ii8+CiAgCiAgPCEtLSBCdXR0b24gYXJlYXMgLS0+CiAgPHJlY3QgeD0iODAwIiB5PSIzMDAiIHdpZHRoPSI4MCIgaGVpZ2h0PSI0MCIgZmlsbD0iIzMzMyIgc3Ryb2tlPSIjNjY2IiByeD0iNSIvPgogIDx0ZXh0IHg9Ijg0MCIgeT0iMzI1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjYWFhIiBmb250LXNpemU9IjE0Ij5QTEFZPC90ZXh0Pgo8L3N2Zz4=';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Synth Interface</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <SynthInterface 
+      backgroundImage={defaultBackground}
+      width={1200}
+      height={700}
+      controls={synthControls}
+    />
+  </body>
+</html>

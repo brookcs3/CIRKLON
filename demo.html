@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photorealistic Synth Interface</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        /* Main synth container */
+        .synth-container {
+            position: relative;
+            width: 1200px;
+            height: 700px;
+            background: #1a1a1a;
+            user-select: none;
+        }
+
+        /* Background image layer */
+        .synth-background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI3MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPCEtLSBWaW50YWdlIFN5bnRoIEJhY2tncm91bmQgLS0+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InBhbmVsIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM0NDQiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1MCUiIHN0b3AtY29sb3I9IiMyYTJhMmEiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMTExIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGZpbHRlciBpZD0ibm9pc2UiPgogICAgICA8ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9IjAuOSIgbnVtT2N0YXZlcz0iNCIgcmVzdWx0PSJub2lzZSIgc2VlZD0iMSIvPgogICAgICA8ZmVDb21wb3NpdGUgaW49Im5vaXNlIiBpbjI9IlNvdXJjZUdyYXBoaWMiIG9wZXJhdG9yPSJtdWx0aXBseSIvPgogICAgPC9maWx0ZXI+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjcwMCIgZmlsbD0idXJsKCNwYW5lbCkiIGZpbHRlcj0idXJsKCNub2lzZSkiLz4KICAKICA8IS0tIFRvcCBQYW5lbCB3aXRoIExvZ28gLS0+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEyMDAiIGhlaWdodD0iODAiIGZpbGw9IiMxMTEiLz4KICA8dGV4dCB4PSI2MDAiIHk9IjQ1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjI4IiBmaWxsPSIjZGRkIiBmb250LWZhbWlseT0iQXJpYWwgQmxhY2siPkFOQUxPRyBTWU5USEVTSVpFUjwvdGV4dD4KICAKICA8IS0tIEtub2IgUGxhY2Vob2xkZXJzIC0tPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjI1MCIgcj0iNDAiIGZpbGw9IiMzMzMiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIzIi8+CiAgPGNpcmNsZSBjeD0iMzUwIiBjeT0iMjUwIiByPSI0MCIgZmlsbD0iIzMzMyIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjMiLz4KICA8Y2lyY2xlIGN4PSI1MDAiIGN5PSIyNTAiIHI9IjQwIiBmaWxsPSIjMzMzIiBzdHJva2U9IiMxMTEiIHN0cm9rZS13aWR0aD0iMyIvPgogIDxjaXJjbGUgY3g9IjY1MCIgY3k9IjI1MCIgcj0iNDAiIGZpbGw9IiMzMzMiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIzIi8+CiAgCiAgPCEtLSBTbGlkZXIgYXJlYXMgLS0+CiAgPHJlY3QgeD0iMTUwIiB5PSI0MDAiIHdpZHRoPSI0MCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMxMTEiIHJ4PSI1Ii8+CiAgPHJlY3QgeD0iMjUwIiB5PSI0MDAiIHdpZHRoPSI0MCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMxMTEiIHJ4PSI1Ii8+CiAgCiAgPCEtLSBCdXR0b24gYXJlYXMgLS0+CiAgPHJlY3QgeD0iODAwIiB5PSIzMDAiIHdpZHRoPSI4MCIgaGVpZ2h0PSI0MCIgZmlsbD0iIzMzMyIgc3Ryb2tlPSIjNjY2IiByeD0iNSIvPgogIDx0ZXh0IHg9Ijg0MCIgeT0iMzI1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjYWFhIiBmb250LXNpemU9IjE0Ij5QTEFZPC90ZXh0Pgo8L3N2Zz4=') no-repeat center;
+            background-size: cover;
+        }
+
+        /* Invisible hitboxes for controls */
+        .control {
+            position: absolute;
+            cursor: pointer;
+        }
+
+        .knob {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            cursor: grab;
+            /* background: rgba(255,0,0,0.2); /* Uncomment to see hitboxes */
+        }
+
+        .knob:active {
+            cursor: grabbing;
+        }
+
+        /* Knob sprite/image that rotates */
+        .knob-image {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 30%, #666, #222);
+            border-radius: 50%;
+            box-shadow: 
+                0 5px 15px rgba(0,0,0,0.8),
+                inset 0 -2px 5px rgba(0,0,0,0.5),
+                inset 0 2px 2px rgba(255,255,255,0.2);
+            transform-origin: center center;
+            pointer-events: none;
+        }
+
+        /* Knob indicator line */
+        .knob-indicator {
+            position: absolute;
+            width: 3px;
+            height: 35%;
+            background: #fff;
+            left: 50%;
+            top: 10%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 3px rgba(255,255,255,0.5);
+            pointer-events: none;
+        }
+
+        /* Slider/Fader */
+        .slider {
+            cursor: ns-resize;
+            /* background: rgba(0,255,0,0.2); /* Uncomment to see hitboxes */
+        }
+
+        .slider-track {
+            position: absolute;
+            width: 6px;
+            height: 100%;
+            background: #111;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.8);
+            pointer-events: none;
+        }
+
+        .slider-handle {
+            position: absolute;
+            width: 40px;
+            height: 20px;
+            background: linear-gradient(to bottom, #888, #444);
+            border: 1px solid #222;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            left: 50%;
+            transform: translateX(-50%);
+            cursor: ns-resize;
+            pointer-events: none;
+        }
+
+        /* Button */
+        .button {
+            transition: all 0.1s;
+            /* background: rgba(0,0,255,0.2); /* Uncomment to see hitboxes */
+        }
+
+        .button:active {
+            transform: scale(0.95);
+        }
+
+        .button-image {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #555, #333);
+            border: 2px solid #222;
+            border-radius: 5px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+
+        .button-image.active {
+            background: linear-gradient(to bottom, #0aa, #088);
+            box-shadow: 0 0 15px #0ff, inset 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        /* LED indicators */
+        .led {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #300;
+            border-radius: 50%;
+            box-shadow: inset 0 0 3px rgba(0,0,0,0.5);
+        }
+
+        .led.active {
+            background: #f00;
+            box-shadow: 0 0 10px #f00, inset 0 0 3px rgba(255,255,255,0.5);
+        }
+
+        /* Value display */
+        .value-display {
+            position: absolute;
+            background: rgba(0,0,0,0.9);
+            color: #0ff;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-family: monospace;
+            pointer-events: none;
+            z-index: 1000;
+            border: 1px solid #0ff;
+        }
+
+        /* Instructions panel */
+        .instructions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            max-width: 300px;
+        }
+
+        .instructions h3 {
+            margin: 0 0 10px 0;
+            color: #0ff;
+        }
+
+        .instructions code {
+            background: #333;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="synth-container">
+        <!-- Background image layer -->
+        <div class="synth-background"></div>
+
+        <!-- KNOBS -->
+        <!-- Oscillator Frequency -->
+        <div class="control knob" style="left: 160px; top: 210px;" data-param="osc-freq" data-min="20" data-max="20000" data-value="440">
+            <div class="knob-image">
+                <div class="knob-indicator"></div>
+            </div>
+        </div>
+        <div style="position: absolute; left: 180px; top: 300px; color: #aaa; font-size: 12px; text-align: center;">OSC FREQ</div>
+
+        <!-- Filter Cutoff -->
+        <div class="control knob" style="left: 310px; top: 210px;" data-param="filter-cutoff" data-min="20" data-max="20000" data-value="1000">
+            <div class="knob-image">
+                <div class="knob-indicator"></div>
+            </div>
+        </div>
+        <div style="position: absolute; left: 330px; top: 300px; color: #aaa; font-size: 12px; text-align: center;">FILTER</div>
+
+        <!-- Resonance -->
+        <div class="control knob" style="left: 460px; top: 210px;" data-param="resonance" data-min="0" data-max="100" data-value="0">
+            <div class="knob-image">
+                <div class="knob-indicator"></div>
+            </div>
+        </div>
+        <div style="position: absolute; left: 470px; top: 300px; color: #aaa; font-size: 12px; text-align: center;">RESONANCE</div>
+
+        <!-- Attack -->
+        <div class="control knob" style="left: 610px; top: 210px;" data-param="attack" data-min="0" data-max="5000" data-value="10">
+            <div class="knob-image">
+                <div class="knob-indicator"></div>
+            </div>
+        </div>
+        <div style="position: absolute; left: 630px; top: 300px; color: #aaa; font-size: 12px; text-align: center;">ATTACK</div>
+
+        <!-- SLIDERS -->
+        <!-- Volume -->
+        <div class="control slider" style="left: 150px; top: 400px; width: 40px; height: 200px;" data-param="volume" data-min="0" data-max="100" data-value="75">
+            <div class="slider-track"></div>
+            <div class="slider-handle" style="top: 50px;"></div>
+        </div>
+        <div style="position: absolute; left: 155px; top: 610px; color: #aaa; font-size: 12px;">VOLUME</div>
+
+        <!-- Mix -->
+        <div class="control slider" style="left: 250px; top: 400px; width: 40px; height: 200px;" data-param="mix" data-min="0" data-max="100" data-value="50">
+            <div class="slider-track"></div>
+            <div class="slider-handle" style="top: 100px;"></div>
+        </div>
+        <div style="position: absolute; left: 265px; top: 610px; color: #aaa; font-size: 12px;">MIX</div>
+
+        <!-- BUTTONS -->
+        <!-- Play Button -->
+        <div class="control button" style="left: 800px; top: 300px; width: 80px; height: 40px;" data-action="play">
+            <div class="button-image"></div>
+        </div>
+
+        <!-- LEDs -->
+        <div class="led" style="left: 900px; top: 310px;" id="play-led"></div>
+
+        <!-- Instructions -->
+        <div class="instructions">
+            <h3>How This Works:</h3>
+            <p><strong>1. Background Image:</strong> High-res photo of real synth (or rendered)</p>
+            <p><strong>2. Invisible Hitboxes:</strong> Positioned over each control</p>
+            <p><strong>3. Control Graphics:</strong> Separate knob/slider images that move</p>
+            <p><strong>4. Interaction:</strong> Drag knobs, slide faders, click buttons</p>
+            <hr style="border-color: #444; margin: 10px 0;">
+            <p><strong>Try it:</strong> Drag the knobs and sliders!</p>
+            <p><strong>Tip:</strong> Add <code>background: rgba(255,0,0,0.2)</code> to control classes to see hitboxes</p>
+        </div>
+    </div>
+
+    <script>
+        // Control values storage
+        const controlValues = {};
+        let valueDisplay = null;
+
+        // Initialize all controls
+        document.querySelectorAll('.control').forEach(control => {
+            const param = control.dataset.param;
+            if (param) {
+                controlValues[param] = parseFloat(control.dataset.value) || 0;
+            }
+
+            if (control.classList.contains('knob')) {
+                setupKnob(control);
+            } else if (control.classList.contains('slider')) {
+                setupSlider(control);
+            } else if (control.classList.contains('button')) {
+                setupButton(control);
+            }
+        });
+
+        // KNOB FUNCTIONALITY
+        function setupKnob(knob) {
+            const param = knob.dataset.param;
+            const min = parseFloat(knob.dataset.min);
+            const max = parseFloat(knob.dataset.max);
+            const knobImage = knob.querySelector('.knob-image');
+            
+            let isDragging = false;
+            let startY = 0;
+            let startValue = controlValues[param];
+            let startRotation = valueToRotation(startValue, min, max);
+
+            // Set initial rotation
+            knobImage.style.transform = `rotate(${startRotation}deg)`;
+
+            knob.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                isDragging = true;
+                startY = e.clientY;
+                startValue = controlValues[param];
+                startRotation = valueToRotation(startValue, min, max);
+                
+                // Create value display
+                createValueDisplay(e.pageX, e.pageY, formatValue(param, startValue));
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+
+                const deltaY = startY - e.clientY;
+                const sensitivity = 0.5;
+                const deltaRotation = deltaY * sensitivity;
+                
+                let newRotation = startRotation + deltaRotation;
+                newRotation = Math.max(-135, Math.min(135, newRotation));
+                
+                knobImage.style.transform = `rotate(${newRotation}deg)`;
+                
+                // Update value
+                const percentage = (newRotation + 135) / 270;
+                controlValues[param] = min + (max - min) * percentage;
+                
+                // Update display
+                updateValueDisplay(e.pageX, e.pageY, formatValue(param, controlValues[param]));
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    removeValueDisplay();
+                }
+            });
+        }
+
+        // SLIDER FUNCTIONALITY
+        function setupSlider(slider) {
+            const param = slider.dataset.param;
+            const min = parseFloat(slider.dataset.min);
+            const max = parseFloat(slider.dataset.max);
+            const handle = slider.querySelector('.slider-handle');
+            const sliderHeight = slider.offsetHeight - handle.offsetHeight;
+            
+            let isDragging = false;
+            let startY = 0;
+            let startTop = handle.offsetTop;
+
+            // Set initial position
+            const percentage = (controlValues[param] - min) / (max - min);
+            handle.style.top = (1 - percentage) * sliderHeight + 'px';
+
+            slider.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                isDragging = true;
+                startY = e.clientY;
+                startTop = handle.offsetTop;
+                
+                createValueDisplay(e.pageX, e.pageY, formatValue(param, controlValues[param]));
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+
+                const deltaY = e.clientY - startY;
+                let newTop = startTop + deltaY;
+                newTop = Math.max(0, Math.min(sliderHeight, newTop));
+                
+                handle.style.top = newTop + 'px';
+                
+                // Update value (inverted because top = max)
+                const percentage = 1 - (newTop / sliderHeight);
+                controlValues[param] = min + (max - min) * percentage;
+                
+                updateValueDisplay(e.pageX, e.pageY, formatValue(param, controlValues[param]));
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    removeValueDisplay();
+                }
+            });
+        }
+
+        // BUTTON FUNCTIONALITY
+        function setupButton(button) {
+            const action = button.dataset.action;
+            const buttonImage = button.querySelector('.button-image');
+            
+            button.addEventListener('click', () => {
+                buttonImage.classList.toggle('active');
+                
+                if (action === 'play') {
+                    const led = document.getElementById('play-led');
+                    led.classList.toggle('active');
+                }
+            });
+        }
+
+        // Helper functions
+        function valueToRotation(value, min, max) {
+            const percentage = (value - min) / (max - min);
+            return -135 + (270 * percentage);
+        }
+
+        function formatValue(param, value) {
+            if (param.includes('freq')) {
+                return value < 1000 ? `${Math.round(value)} Hz` : `${(value/1000).toFixed(1)} kHz`;
+            } else if (param.includes('attack') || param.includes('release')) {
+                return `${Math.round(value)} ms`;
+            } else {
+                return Math.round(value).toString();
+            }
+        }
+
+        function createValueDisplay(x, y, text) {
+            valueDisplay = document.createElement('div');
+            valueDisplay.className = 'value-display';
+            valueDisplay.textContent = text;
+            valueDisplay.style.left = x + 15 + 'px';
+            valueDisplay.style.top = y - 30 + 'px';
+            document.body.appendChild(valueDisplay);
+        }
+
+        function updateValueDisplay(x, y, text) {
+            if (valueDisplay) {
+                valueDisplay.textContent = text;
+                valueDisplay.style.left = x + 15 + 'px';
+                valueDisplay.style.top = y - 30 + 'px';
+            }
+        }
+
+        function removeValueDisplay() {
+            if (valueDisplay) {
+                document.body.removeChild(valueDisplay);
+                valueDisplay = null;
+            }
+        }
+    </script>
+</body>
+</html>
